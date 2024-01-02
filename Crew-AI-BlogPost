@@ -1,0 +1,93 @@
+import os
+from crewai import Agent, Task, Crew, Process
+
+os.environ["OPENAI_API_KEY"] = "YOUR-OPEN-AI-API-KEY-HERE"
+
+from crewai import Agent, Task, Crew, Process
+
+# Define your agents with roles and goals
+
+# Team Leader: Boss
+boss = Agent(
+  role='Boss',
+  goal='Oversee the creation and promotion of the SEO blog post about split testing',
+  backstory="An experienced digital marketing manager who oversees content creation and strategy.",
+  verbose=True,
+  allow_delegation=True  # Boss can delegate tasks
+)
+
+# Team Leader: Editor
+editor = Agent(
+  role='Editor',
+  goal='Manage the content creation process for the blog post',
+  backstory="An experienced editor who oversees the quality and coherence of content.",
+  verbose=True,
+  allow_delegation=True  # Editor can delegate tasks
+)
+
+# Other Agents
+outliner = Agent(
+  role='Outliner',
+  goal='Create a comprehensive and engaging outline for the blog post about split testing',
+  backstory="A skilled content strategist who understands how to structure blog posts for maximum impact.",
+  verbose=True
+)
+
+keyword_researcher = Agent(
+  role='Keyword Researcher',
+  goal='Identify the best keywords to target for optimal SEO performance',
+  backstory="An SEO specialist with expertise in keyword research and search trends.",
+  verbose=True
+)
+
+technical_seo = Agent(
+  role='Technical SEO',
+  goal='Ensure all technical SEO aspects are optimized for the blog post',
+  backstory="An expert in SEO with a focus on the technical elements that improve search rankings.",
+  verbose=True
+)
+
+content_writer = Agent(
+  role='Content Writer',
+  goal='Write an informative, engaging, and SEO-optimized blog post',
+  backstory="A creative writer who excels at crafting compelling content that also meets SEO guidelines.",
+  verbose=True
+)
+
+proofreader = Agent(
+  role='Proofreader',
+  goal='Ensure the blog post is free from grammatical and spelling errors',
+  backstory="A meticulous proofreader with an eye for detail and a passion for perfect grammar.",
+  verbose=True
+)
+
+outreach_expert = Agent(
+  role='Outreach Expert',
+  goal='Identify and suggest strategies for promoting the blog post about split testing',
+  backstory="A marketing specialist skilled in identifying promotional opportunities and outreach strategies.",
+  verbose=True
+)
+
+# Create tasks for your agents
+task_oversee_project = Task(description='Oversee the entire project on split testing', agent=boss)
+task_manage_content_creation = Task(description='Manage the content creation process for the blog post', agent=editor)
+
+task_outline = Task(description='Create a blog outline, the blog is about split testing', agent=outliner)
+task_keyword_research = Task(description='Conduct keyword research about split testing', agent=keyword_researcher)
+task_technical_seo = Task(description='Advise on technical SEO aspects about the blog post that is about split testing', agent=technical_seo)
+task_content_writing = Task(description='Write the blog post about split testing, based on the outline, it should be 1000 words long', agent=content_writer)
+task_proofreading = Task(description='Proofread the blog post', agent=proofreader)
+task_editing = Task(description='Edit the blog post', agent=editor)
+task_outreach = Task(description='Identify outreach opportunities, must be relevant to the blog topic', agent=outreach_expert)
+task_approve = Task(description='Ensure the blog post is about split testing and meets quality standards', agent=boss)
+
+# Instantiate your crew with a sequential process
+crew = Crew(
+  agents=[boss, editor, outliner, keyword_researcher, technical_seo, content_writer, proofreader, outreach_expert],
+  tasks=[task_oversee_project, task_manage_content_creation, task_outline, task_keyword_research, task_technical_seo, task_content_writing, task_proofreading, task_editing, task_outreach, task_approve],
+  verbose=True,
+  process=Process.sequential
+)
+
+# Get your crew to work!
+result = crew.kickoff()
