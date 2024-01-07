@@ -1,0 +1,120 @@
+import os
+from crewai import Agent, Task, Crew, Process
+
+os.environ["OPENAI_API_KEY"] = ""
+
+
+# Define Agents for Writing Crew
+email_writer_1 = Agent(
+    role='Concise Email Writer',
+    goal='Write a short and engaging email',
+    backstory='Experienced in writing concise marketing emails.',
+    verbose=True,
+    allow_delegation=True
+)
+
+email_writer_2 = Agent(
+    role='Technical Email Writer',
+    goal='Incorporate technical aspects of the video editing solution',
+    backstory='Specializes in explaining technical products in an accessible way.',
+    verbose=True,
+    allow_delegation=False
+)
+
+email_writer_3 = Agent(
+    role='Creative Email Writer',
+    goal='Add a creative flair to the email',
+    backstory='Brings a unique and creative perspective to marketing content.',
+    verbose=True,
+    allow_delegation=False
+)
+
+# Define Task for Writing Crew
+email_writing_task = Task(
+    description='Write three variations of a cold email selling a video editing solution. the solution is targeted towards marketing teams at DTC brands. the main unique selling point is the ability to create high-quality videos at scale. doubling down on ads that work and quickly iterating in order to test a large volume of ads without needing to wait for the video editors manually creating the videos.',
+    agent=email_writer_1  # The task is assigned to the crew, not a specific agent
+)
+
+# Create Writing Crew
+writing_crew = Crew(
+    agents=[email_writer_1, email_writer_2, email_writer_3],
+    tasks=[email_writing_task],
+    verbose=True,
+    process=Process.sequential
+)
+
+# Define Agents for Review Crew
+proofreader = Agent(
+    role='Proofreader',
+    goal='Ensure grammatical correctness and clarity',
+    backstory='Expert in English grammar and clarity in communication.',
+    verbose=True,
+    allow_delegation=False
+    )
+
+cold_email_specialist = Agent(
+    role='Cold Email Specialist',
+    goal='Provide strategic advice for cold emailing',
+    backstory='Skilled in creating effective and engaging cold email strategies.',
+    verbose=True,
+    allow_delegation=True
+)
+
+# Define Task for Review Crew
+review_task = Task(
+    description='Review and provide feedback on the cold emails provided by writing_crew.',
+    agent=cold_email_specialist
+)
+
+# Create Review Crew
+review_crew = Crew(
+    agents=[proofreader, cold_email_specialist],
+    tasks=[review_task],
+    verbose=True,
+    process=Process.sequential
+)
+
+# Define Agents for Critique Crew
+dtc_cmo = Agent(
+    role='DTC CMO',
+    goal='Evaluate the email provided by writing_crew from a CMO perspective, modify the email to better fit the needs of a CMO, make sure to take into account the feedback provided by the review_crew. ',
+    backstory='A CMO who frequently receives marketing emails.',
+    verbose=True,
+    allow_delegation=True
+    
+)
+
+copywriter = Agent(
+    role='Professional Copywriter',
+    goal='Critique the email provided by writing_crew from a copywriting perspective and help dtc_cmo to rewrite the email to better fit the needs of a CMO.',
+    backstory='A professional copywriter with extensive experience.',
+    verbose=True,
+    allow_delegation=False
+)
+
+# Define Task for Critique Crew
+critique_task = Task(
+    description='Critique the cold emails provided by the writing_crew from prospects perspective, imagine you are recieving many emails proposing video editing services on a daily basis and you are looking for an exciting solution with very little risk. rewrite the 3 emails to better fit the needs of a CMO. DO TAKE INTO ACCOUNT the feedback provided by the review_crew.',
+    agent=dtc_cmo
+)
+
+# Create Critique Crew
+critique_crew = Crew(
+    agents=[dtc_cmo, copywriter],
+    tasks=[critique_task],
+    verbose=True,
+    process=Process.sequential
+)
+
+# Execution Flow
+print("Crew 1: Writing Cold Email Variations")
+email_variations = writing_crew.kickoff()
+
+print("\nCrew 2: Reviewing and Providing Feedback")
+review_feedback = review_crew.kickoff()
+
+print("\nCrew 3: Critiquing the Emails and rewriting them")
+critique_feedback = critique_crew.kickoff()
+
+
+
