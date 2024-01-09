@@ -1,0 +1,42 @@
+import json
+import autogen
+from autogen.agentchat.contrib.agent_builder import AgentBuilder
+
+# Configuration Setup
+config_file_or_env = "F:\\autogen\\autogen09jan\\autogen\\OAI_CONFIG_LIST"  # Update this with your correct file path
+llm_config = {"temperature": 0}
+config_list = autogen.config_list_from_json(config_file_or_env, filter_dict={"model": ["gpt-4-1106-preview", "gpt-4"]})
+
+# Define your task
+execution_task = "create 3 cold email drafts promoting my solution that is called ads at scale. the solution help direct to consumer brands and agencies accelerate their process of editing videos. it uses code to generate multiple ads based on historical data of top performing ads. make the email short, make sure that the prospects understand that this is a zero risk solution, and the call to action should be requesting permission to send a short video explaining the solution."
+
+# Build agents from the library for the task
+library_path_or_json = "F:\\autogen\\autogen09jan\\autogen\\agent_library_example.json"  # Update this with your correct file path
+builder = AgentBuilder(config_file_or_env=config_file_or_env, builder_model="gpt-4-1106-preview", agent_model="gpt-4-1106-preview")
+agent_list, _ = builder.build_from_library(execution_task, library_path_or_json, llm_config)
+
+# Check if agents are created
+if not agent_list:
+    raise ValueError("No agents were created. Please check the agent building process.")
+
+# Create a group chat with agents
+group_chat = autogen.GroupChat(agents=agent_list, messages=[], max_round=12)
+manager = autogen.GroupChatManager(groupchat=group_chat, llm_config={"config_list": config_list, **llm_config})
+
+# Initiate the task in the group chat
+agent_list[0].initiate_chat(manager, message=execution_task)
+
+# (Optional) Save the agents' information into a JSON file
+with open("./agent_list.json", "w") as file:
+    json.dump(agent_list, file, indent=4)
+
+# Define a start_task function if it's not already defined
+def start_task(task, agents):
+    # Task starting logic here
+    pass
+
+# Start the task
+start_task(execution_task, agent_list)
+
+# Clear agents after completion
+builder.clear_all_agents()
